@@ -1,24 +1,26 @@
 name: build
 
 on: 
-  push:
-    branches:
-    - "*"
+#  push:
+#    branches:
+#    - "*"
   workflow_dispatch:
-
+  watch:
+    types: [started]
 jobs:
   build:
     name: build
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        target: [K2P, K2P-NANO, K2P-USB]
+        target: [K2P, K2P-NANO, K2P-SDBIN]
     steps:
       - uses: actions/checkout@v3
       - uses: hendrikmuhs/ccache-action@v1.2
       - uses: actions/setup-go@v3
         with:
           go-version: '^1.18.6'
+          check-latest: true
       - uses: actions/cache@v3
         with:
           path: |
@@ -33,18 +35,128 @@ jobs:
           sudo apt install libtool-bin gperf python3-docutils autopoint gettext ccache
           # https://github.com/actions/setup-go/issues/107
           echo "${GOROOT}/bin" >> $GITHUB_PATH
+          Models=(K2P K2P-NANO K2P-SDBIN)
+          for id in ${Models[@]}
+          do
+          #############################################################################SDY###############################
+          #############################################################################SDY###############################
+          #############################################################################SDY###############################
+          sed -i 's/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=n/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=y/g' trunk/configs/templates/$id.config
+          ################################################################################################
+          #因不同型号配置功能不一样，所以先把配置项删除，如果你自己要添加其他的，也要写上删除这一条，切记！！！
+          ################################################################################################
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_MENTOHUST/d' trunk/configs/templates/$id.config #删除配置项MENTOHUST
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT/d' trunk/configs/templates/$id.config #删除配置项SCUTCLIENT
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS/d' trunk/configs/templates/$id.config #删除配置项SS plus+
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SSSERVER/d' trunk/configs/templates/$id.config #删除配置项SS server
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER/d' trunk/configs/templates/$id.config #删除配置项DNSFORWARDER
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_ADBYBY/d' trunk/configs/templates/$id.config #删除配置项adbyby plus+
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_FRPC/d' trunk/configs/templates/$id.config #删除配置项adbyby plus+
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_FRPS/d' trunk/configs/templates/$id.config #删除配置项adbyby plus+
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_TUNSAFE/d' trunk/configs/templates/$id.config #删除配置项adbyby plus+
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_ALIDDNS/d' trunk/configs/templates/$id.config #删除配置项阿里DDNS
+          #######################################################################
+          #                             sandianyue mod                          #
+          #sed -i '/CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS/d' trunk/configs/templates/$id.config #删除配置项SS
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_XRAY/d' trunk/configs/templates/$id.config #删除配置项Xray
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SSOBFS/d' trunk/configs/templates/$id.config #删除配置项Simple-obfs
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_TROJAN/d' trunk/configs/templates/$id.config #删除配置项Trojan
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_ZEROTIER/d' trunk/configs/templates/$id.config #删除配置项Zerotier
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SMARTDNS/d' trunk/configs/templates/$id.config #删除配置项SmartDNS
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_OC/d' trunk/configs/templates/$id.config #删除配置项CPU OC
+          sed -i '/CONFIG_FIRMWARE_MT7621_OC/d' trunk/configs/templates/$id.config #删除配置项MT7621 OC Rate
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_VLMCSD/d' trunk/configs/templates/$id.config #删除配置项VLMCSD(Local KMS) 
+          #######################################################################
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SMARTDNS/d' trunk/configs/templates/$id.config
+          sed -i '/CONFIG_FIRMWARE_INCLUDE_SRELAY/d' trunk/configs/templates/$id.config
+          sed -i 's/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=n/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=y/g' trunk/configs/templates/$id.config
+    
+          
+          ######################################################################
+          #以下选项是定义你需要的功能（y=集成,n=忽略），重新写入到trunk/configs/templates/$id.config文件
+          ######################################################################
+          #if [ $KERNEL = "4.4" ] ; then
+          echo "CONFIG_FIRMWARE_INCLUDE_MENTOHUST=n" >> trunk/configs/templates/$id.config #MENTOHUST
+          echo "CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT=n" >> trunk/configs/templates/$id.config #SCUTCLIENT
+          echo "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS=y" >> trunk/configs/templates/$id.config #SS plus+
+          echo "CONFIG_FIRMWARE_INCLUDE_SSOBFS=n" >> trunk/configs/templates/$id.config # simple-obfs混淆插件
+          echo "CONFIG_FIRMWARE_INCLUDE_ADBYBY=y" >> trunk/configs/templates/$id.config #adbyby plus+
+          echo "CONFIG_FIRMWARE_INCLUDE_SMARTDNS=y" >> trunk/configs/templates/$id.config #SmartDNS
+          echo "CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER=n" >> trunk/configs/templates/$id.config #DNSFORWARDER
+          echo "CONFIG_FIRMWARE_INCLUDE_SRELAY=n" >> trunk/configs/templates/$id.config #可以不集成
+          echo "CONFIG_FIRMWARE_INCLUDE_XRAY=y" >> trunk/configs/templates/$id.config #集成xray执行文件  ~4.5M
+          echo "CONFIG_FIRMWARE_INCLUDE_V2RAY=n" >> trunk/configs/templates/$id.config #集成v2ray执行文件
+          echo "CONFIG_FIRMWARE_INCLUDE_DDNSTO=n" >> trunk/configs/templates/$id.config #ddnsto  ~0.5M
+          echo "CONFIG_FIRMWARE_INCLUDE_ALDRIVER=n" >> trunk/configs/templates/$id.config  #阿里云盘  ~3m
+          echo "CONFIG_FIRMWARE_INCLUDE_ZEROTIER=y" >> trunk/configs/templates/$id.config #zerotier ~1.3M
+          echo "CONFIG_FIRMWARE_INCLUDE_ALIDDNS=n" >> trunk/configs/templates/$id.config #aliddns
+          #else
+          #echo "CONFIG_FIRMWARE_INCLUDE_MENTOHUST=n" >> trunk/configs/templates/$id.config #MENTOHUST
+          #echo "CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT=n" >> trunk/configs/templates/$id.config #SCUTCLIENT
+          #echo "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS=y" >> trunk/configs/templates/$id.config #SS plus+
+          #echo "CONFIG_FIRMWARE_INCLUDE_SSOBFS=n" >> trunk/configs/templates/$id.config # simple-obfs混淆插件
+          #echo "CONFIG_FIRMWARE_INCLUDE_SSSERVER=n" >> trunk/configs/templates/$id.config #SS server
+          #echo "CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER=n" >> trunk/configs/templates/$id.config #DNSFORWARDER
+          #echo "CONFIG_FIRMWARE_INCLUDE_ADBYBY=y" >> trunk/configs/templates/$id.config #adbyby plus+
+          #echo "CONFIG_FIRMWARE_INCLUDE_FRPC=n" >> trunk/configs/templates/$id.config #内网穿透FRPC
+          #echo "CONFIG_FIRMWARE_INCLUDE_FRPS=n" >> trunk/configs/templates/$id.config #内网穿透FRPS
+          #echo "CONFIG_FIRMWARE_INCLUDE_TUNSAFE=n" >> trunk/configs/templates/$id.config #TUNSAFE
+          #echo "CONFIG_FIRMWARE_INCLUDE_ALIDDNS=n" >> trunk/configs/templates/$id.config #阿里DDNS
+          #echo "CONFIG_FIRMWARE_INCLUDE_SMARTDNS=n" >> trunk/configs/templates/$id.config #smartdns
+          #echo "CONFIG_FIRMWARE_INCLUDE_SMARTDNSBIN=n" >> trunk/configs/templates/$id.config #smartdns二进制文件
+          #echo "CONFIG_FIRMWARE_INCLUDE_V2RAY=y" >> trunk/configs/templates/$id.config #集成v2ray执行文件（3.8M左右)，如果不集成，会从网上下载下来执行，不影响正常使用
+          #echo "CONFIG_FIRMWARE_INCLUDE_TROJAN=y" >> trunk/configs/templates/$id.config #集成trojan执行文件(1.1M左右)，如果不集成，会从网上下载下来执行，不影响正常使用
+          #echo "CONFIG_FIRMWARE_INCLUDE_KOOLPROXY=n" >> trunk/configs/templates/$id.config #KP广告过滤
+          #echo "CONFIG_FIRMWARE_INCLUDE_CADDY=n" >> trunk/configs/templates/$id.config #在线文件管理服务
+          #echo "CONFIG_FIRMWARE_INCLUDE_CADDYBIN=n" >> trunk/configs/templates/$id.config #集成caddy执行文件，此文件有13M,请注意固件大小。如果不集成，会从网上下载下来执行，不影响正常使用
+          #echo "CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME=n" >> trunk/configs/templates/$id.config
+          #echo "CONFIG_FIRMWARE_INCLUDE_SRELAY=n" >> trunk/configs/templates/$id.config #可以不集成
+          #echo "CONFIG_FIRMWARE_INCLUDE_WYY=n" >> trunk/configs/templates/$id.config #网易云解锁
+          #echo "CONFIG_FIRMWARE_INCLUDE_WYYBIN=n" >> trunk/configs/templates/$id.config #网易云解锁GO版本执行文件（4M多）注意固件超大小,不集成会自动下载
+          #echo "CONFIG_FIRMWARE_INCLUDE_ZEROTIER=y" >> trunk/configs/templates/$id.config #zerotier ~1.3M
+          #fi     
+        
+       
+        
+          
+          ##流控QOS##
+          echo "CONFIG_FIRMWARE_INCLUDE_SQM=y" >> trunk/configs/templates/$id.config #SQM QOS#CPU超频
+          echo "CONFIG_FIRMWARE_INCLUDE_OC=y" >> trunk/configs/templates/$id.config #CPU超频开关
+          echo 'CONFIG_FIRMWARE_MT7621_OC="0x312"' >> trunk/configs/templates/$id.config #此处填写对应频率的十六进制：1000Mhz=0x312 1100Mhz=0x362 1120Mhz=0x372 1200Mhz=0x3B2
+  
+          #########################################################################################
+          #自定义添加其它功能请参考源码configs/templates/目录下的config文件。按照上面的格式添加即可
+          #格式如下：
+          #sed -i '/自定义项/d' trunk/configs/templates/$id.config
+          #echo "自定义项=y" >> trunk/configs/templates/$id.config
+
+          done
+          #########################################################################################
+          
+          #########################################################################################
+          #同步最新Xray
+          sed -i "s/XRAY_VERSION := .*/XRAY_VERSION := $(curl -fsSL https://api.github.com/repos/XTLS/Xray-core/releases | grep '"tag_name":' | head -n 1 | sed -E 's/.*"v([^"]+)".*/\1/')/" trunk/user/xray/Makefile
+          #############################################################################SDY###############################
+          #############################################################################SDY###############################
+          #############################################################################SDY###############################
       - name: Build
         run: |
           make ${{ matrix.target }}
-          if [ "${{ matrix.target }}" = "K2P-NANO" ]; then
+          Variants=(K2P-NANO K2P-SDBIN)
+          for ver in ${Variants[@]}
+          do
+          if [ "${{ matrix.target }}" = "$ver" ]; then
             image=$(ls trunk/images/*.trx)
-            mv $image $(echo $image | sed 's/K2P/K2P-NANO/')
+            mv $image $(echo $image | sed 's/K2P/'$ver'/')
           fi
           echo "TAG_ANME=$(date +%Y%m%d)" >> $GITHUB_ENV
+          done
       - uses: actions/upload-artifact@v3
         with:
           name: images
-          path: trunk/images/*.trx
+          path: |
+            trunk/images/*.trx
+            trunk/configs/templates/K2P*.config
       - uses: rickstaa/action-create-tag@v1
         with:
           tag: ${{ env.TAG_ANME }}
