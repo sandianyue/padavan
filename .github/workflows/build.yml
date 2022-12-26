@@ -143,7 +143,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: images
-          path: 
+          path: |
             trunk/images/*.trx
             trunk/configs/templates/K2P*.config
       - uses: rickstaa/action-create-tag@v1
